@@ -1,0 +1,794 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="My Budget">
+<meta name="theme-color" content="#0F6E56">
+<link rel="manifest" href="manifest.json">
+<title>Coralie Budget</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css">
+<style>
+:root{
+  --bg:#f7f7f5;--card:#fff;--border:#e5e4e0;--border2:#d0cfc9;
+  --text:#1a1a18;--muted:#777672;--green:#0F6E56;--red:#993C1D;
+  --radius:10px;--font:'Inter',system-ui,sans-serif
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font);background:var(--bg);color:var(--text);padding:0 0 40px}
+
+/* ── LOGIN ── */
+#login-screen{display:flex;align-items:center;justify-content:center;min-height:100vh;padding:1rem}
+.login-box{background:#fff;border-radius:16px;padding:2rem;width:100%;max-width:360px;box-shadow:0 8px 40px rgba(0,0,0,.1)}
+.login-logo{background:var(--green);border-radius:12px;width:52px;height:52px;display:flex;align-items:center;justify-content:center;margin:0 auto 1.25rem;color:#fff;font-size:24px}
+.login-box h1{font-size:20px;font-weight:600;text-align:center;margin-bottom:.25rem}
+.login-box p{font-size:13px;color:var(--muted);text-align:center;margin-bottom:1.5rem}
+.login-box label{font-size:12px;color:var(--muted);display:block;margin-bottom:4px;margin-top:.75rem}
+.login-box input{width:100%;font-size:14px;padding:9px 12px;border:1px solid var(--border2);border-radius:8px;font-family:inherit;color:var(--text);background:#fff}
+.login-box input:focus{outline:none;border-color:var(--green)}
+.btn-login{width:100%;margin-top:1.25rem;padding:11px;background:var(--green);border:none;border-radius:8px;color:#fff;font-size:15px;font-weight:600;font-family:inherit;cursor:pointer}
+.btn-login:hover{background:#085041}
+.login-error{color:var(--red);font-size:13px;margin-top:.75rem;text-align:center;min-height:18px}
+.login-loading{color:var(--muted);font-size:13px;margin-top:.75rem;text-align:center}
+
+/* ── APP ── */
+#app-screen{display:none}
+.app{max-width:700px;margin:0 auto;padding:1.25rem 1rem}
+.top-bar{background:var(--green);border-radius:var(--radius);padding:.9rem 1.1rem;margin-bottom:1.25rem;display:flex;flex-direction:column;gap:10px;color:#fff}
+.tb-label{font-size:11px;opacity:.8;text-transform:uppercase;letter-spacing:.07em;margin-bottom:3px}
+.tb-val{font-size:24px;font-weight:600}
+.tb-date{font-size:12px;opacity:.75;margin-top:2px}
+.top-bar-right{display:flex;flex-direction:row;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
+@media(min-width:480px){.top-bar{flex-direction:row;align-items:center;justify-content:space-between}.top-bar-right{flex-direction:column;align-items:flex-end}}
+.btn-topbar{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.4);border-radius:8px;padding:5px 12px;font-size:12px;color:#fff;cursor:pointer;font-family:inherit;white-space:nowrap}
+.btn-topbar:hover{background:rgba(255,255,255,.25)}
+.btn-topbar:disabled{opacity:.4;cursor:default}
+.save-status{font-size:11px;opacity:.7;text-align:right}
+
+.tabs-wrap{display:flex;gap:3px;flex-wrap:wrap;margin-bottom:0;border-bottom:2px solid var(--border)}
+.tab-btn{background:none;border:none;padding:9px 13px;font-size:13px;font-family:var(--font);color:var(--muted);cursor:pointer;border-bottom:3px solid transparent;margin-bottom:-2px;border-radius:6px 6px 0 0;transition:all .15s}
+.tab-btn:hover{color:var(--text);background:#ededeb}
+.tab-btn.active{color:#fff;background:var(--green);border-bottom-color:var(--green);font-weight:600}
+.tab-content{display:none;padding-top:1.1rem}.tab-content.active{display:block}
+.pos{color:var(--green)}.neg{color:var(--red)}
+
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-bottom:.9rem}
+.home-table{width:100%;border-collapse:collapse}
+.home-table th{font-size:11px;color:var(--muted);padding:9px 14px;font-weight:500;border-bottom:1px solid var(--border);text-align:left}
+.home-table th:nth-child(2),.home-table td:nth-child(2){text-align:right}
+.home-table th:nth-child(3),.home-table td:nth-child(3){text-align:right}
+.home-table td{padding:10px 14px;font-size:14px;border-bottom:1px solid var(--border);color:var(--text)}
+.home-table tr:last-child td{border-bottom:none}
+.home-table tfoot td{font-weight:600;font-size:15px;border-top:1px solid var(--border2);border-bottom:none;padding:11px 14px}
+.sec-title{font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;margin:.9rem 0 .4rem}
+.w-row{display:flex;align-items:center;justify-content:space-between;padding:9px 14px;border-bottom:1px solid var(--border);font-size:13px}
+.w-row:last-child{border-bottom:none}
+.w-label{color:var(--muted);flex:1}
+.w-amt{font-weight:500}
+.w-total-row{display:flex;justify-content:space-between;padding:11px 14px;font-size:14px;font-weight:600;background:#f2f2f0}
+
+.item-row{display:flex;align-items:center;gap:8px;padding:10px 14px;border-bottom:1px solid var(--border)}
+.item-row:last-child{border-bottom:none}
+.item-name{flex:1;font-size:14px}
+.item-date{font-size:11px;color:var(--muted);min-width:72px;text-align:right}
+.item-bal{font-size:15px;font-weight:600;min-width:80px;text-align:right}
+.calc-btn{background:var(--bg);border:1px solid var(--border2);border-radius:7px;padding:4px 10px;font-size:12px;font-family:var(--font);cursor:pointer;color:var(--muted);white-space:nowrap;transition:all .15s}
+.calc-btn:hover{background:var(--green);color:#fff;border-color:var(--green)}
+.del-btn{background:none;border:none;cursor:pointer;color:var(--border2);font-size:15px;padding:3px 4px;border-radius:6px;line-height:1;transition:all .15s}
+.del-btn:hover{color:var(--red);background:#FAECE7}
+
+.inline-calc{display:none;background:#f2f2f0;border-bottom:1px solid var(--border2);padding:10px 14px;gap:8px;align-items:center;flex-wrap:wrap}
+.inline-calc.open{display:flex}
+.inline-calc label{font-size:11px;color:var(--muted)}
+.inline-calc input[type=number]{width:90px;font-size:13px;padding:5px 8px;border:1px solid var(--border2);border-radius:7px;background:#fff;color:var(--text);font-family:var(--font);text-align:right}
+.inline-calc input[type=date]{font-size:13px;padding:5px 8px;border:1px solid var(--border2);border-radius:7px;background:#fff;color:var(--text);font-family:var(--font)}
+.inline-calc select{font-size:13px;padding:5px 8px;border:1px solid var(--border2);border-radius:7px;background:#fff;color:var(--text);font-family:var(--font)}
+.btn-apply{background:var(--green);border:none;border-radius:7px;padding:6px 14px;font-size:13px;font-family:var(--font);color:#fff;cursor:pointer;font-weight:600}
+.btn-apply:hover{background:#085041}
+.btn-cancel{background:none;border:none;font-size:12px;color:var(--muted);cursor:pointer;font-family:var(--font);padding:4px 6px}
+
+.acct-total{display:flex;justify-content:space-between;align-items:center;padding:11px 14px;background:#f2f2f0;font-size:14px;font-weight:600;border-top:1px solid var(--border2)}
+.acct-total span:first-child{color:var(--muted)}
+.add-row{display:flex;align-items:center;gap:6px;padding:8px 14px;background:#f9f9f8;border-top:1px solid var(--border);flex-wrap:wrap}
+.add-row input[type=text]{flex:1;min-width:100px;font-size:13px;padding:5px 8px;border:1px solid var(--border2);border-radius:7px;background:#fff;color:var(--text);font-family:var(--font)}
+.add-row input[type=number]{width:85px;font-size:13px;padding:5px 8px;border:1px solid var(--border2);border-radius:7px;background:#fff;color:var(--text);font-family:var(--font);text-align:right}
+.add-row input[type=date]{font-size:13px;padding:5px 8px;border:1px solid var(--border2);border-radius:7px;background:#fff;color:var(--text);font-family:var(--font)}
+.btn-add-line{background:var(--green);border:none;border-radius:7px;padding:6px 12px;font-size:13px;font-family:var(--font);color:#fff;cursor:pointer;white-space:nowrap;font-weight:500}
+.btn-add-line:hover{background:#085041}
+
+.allow-row{display:flex;align-items:center;gap:8px;padding:9px 14px;border-bottom:1px solid var(--border)}
+.allow-row:last-child{border-bottom:none}
+.allow-name{flex:1;font-size:13px;color:var(--muted)}
+.allow-input{width:80px;font-size:13px;padding:4px 8px;border:1px solid var(--border2);border-radius:7px;background:#f2f2f0;color:var(--text);font-family:var(--font);text-align:right}
+.allow-total{display:flex;justify-content:space-between;padding:10px 14px;font-size:13px;font-weight:600;background:#f2f2f0;border-top:1px solid var(--border2)}
+.add-allow-row{display:flex;gap:6px;padding:8px 14px;background:#f9f9f8;border-top:1px solid var(--border);flex-wrap:wrap;align-items:center}
+.add-allow-row input[type=text]{flex:1;min-width:100px;font-size:13px;padding:5px 8px;border:1px solid var(--border2);border-radius:7px;background:#fff;color:var(--text);font-family:var(--font)}
+.add-allow-row input[type=number]{width:85px;font-size:13px;padding:5px 8px;border:1px solid var(--border2);border-radius:7px;background:#fff;color:var(--text);font-family:var(--font);text-align:right}
+.hint{font-size:11px;color:var(--muted);font-style:italic;margin-left:4px}
+@media(max-width:480px){
+  .app{padding:.9rem .75rem}
+  .tab-btn{padding:7px 9px;font-size:12px}
+  .item-row{flex-wrap:wrap;gap:6px}
+  .item-date{min-width:auto}
+  .item-bal{min-width:auto}
+  .inline-calc{gap:6px}
+  .inline-calc input[type=number]{width:80px}
+  .add-row{gap:5px}
+  .add-row input[type=number]{width:75px}
+  .home-table td,.home-table th{padding:8px 10px;font-size:13px}
+  .w-row{padding:8px 12px}
+  .acct-total{padding:10px 12px}
+  .allow-row{padding:8px 12px}
+}
+</style>
+</head>
+<body>
+
+<!-- LOGIN SCREEN -->
+<div id="login-screen">
+  <div class="login-box">
+    <div class="login-logo">💰</div>
+    <h1>Coralie's Budget</h1>
+    <p>Sign in to access your accounts</p>
+    <label>Email</label>
+    <input type="email" id="login-email" placeholder="your@email.com" autocomplete="email">
+    <label>Password</label>
+    <input type="password" id="login-password" placeholder="••••••••" autocomplete="current-password">
+    <button class="btn-login" id="btn-login">Sign in</button>
+    <div class="login-error" id="login-error"></div>
+  </div>
+</div>
+
+<!-- APP SCREEN -->
+<div id="app-screen">
+<div class="app">
+  <div class="top-bar">
+    <div>
+      <div class="tb-label">Total balance — all accounts</div>
+      <div class="tb-val" id="grandTotal"></div>
+    </div>
+    <div class="top-bar-right">
+      <div class="tb-date" id="topDate"></div>
+      <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+        <div class="save-status" id="save-status"></div>
+        <button class="btn-topbar" id="undo-btn" data-action="undo" disabled>↩ Undo</button>
+        <button class="btn-topbar" data-action="signout">Sign out</button>
+      </div>
+    </div>
+  </div>
+  <div class="tabs-wrap" id="tabsWrap"></div>
+  <div id="tabContents"></div>
+</div>
+</div>
+
+<!-- Firebase SDKs -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyARX65xv6nVcpm9IxYWSZanJCw1Gt5Hte8",
+  authDomain: "coralie-budget.firebaseapp.com",
+  databaseURL: "https://coralie-budget-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "coralie-budget",
+  storageBucket: "coralie-budget.firebasestorage.app",
+  messagingSenderId: "545481469332",
+  appId: "1:545481469332:web:35e8b5f1a3805aa03f3381"
+};
+
+const fbApp = initializeApp(firebaseConfig);
+const auth = getAuth(fbApp);
+const db = getDatabase(fbApp);
+
+// ── LOGIN ────────────────────────────────────────────────────────────────────
+document.getElementById('btn-login').addEventListener('click', async () => {
+  const email = document.getElementById('login-email').value.trim();
+  const pass = document.getElementById('login-password').value;
+  const errEl = document.getElementById('login-error');
+  errEl.textContent = '';
+  try {
+    await signInWithEmailAndPassword(auth, email, pass);
+  } catch(e) {
+    errEl.textContent = 'Incorrect email or password. Please try again.';
+  }
+});
+
+document.getElementById('login-password').addEventListener('keydown', e => {
+  if(e.key === 'Enter') document.getElementById('btn-login').click();
+});
+
+// ── AUTH STATE ───────────────────────────────────────────────────────────────
+onAuthStateChanged(auth, user => {
+  if(user){
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('app-screen').style.display = 'block';
+    startApp(user.uid);
+  } else {
+    document.getElementById('login-screen').style.display = 'flex';
+    document.getElementById('app-screen').style.display = 'none';
+  }
+});
+
+// ── APP ──────────────────────────────────────────────────────────────────────
+let saveTimeout = null;
+let appStarted = false;
+
+function saveToFirebase(uid) {
+  clearTimeout(saveTimeout);
+  document.getElementById('save-status').textContent = 'Saving…';
+  saveTimeout = setTimeout(async () => {
+    try {
+      await set(ref(db, 'users/' + uid + '/data'), { A, HW, NID, TABS: TABS.filter(t=>t.id!=='home') });
+      document.getElementById('save-status').textContent = 'Saved ✓';
+      setTimeout(()=>{ const el=document.getElementById('save-status'); if(el)el.textContent=''; }, 2000);
+    } catch(e) {
+      document.getElementById('save-status').textContent = 'Save failed';
+    }
+  }, 800);
+}
+
+function startApp(uid) {
+  if(appStarted) return;
+  appStarted = true;
+
+  // Listen for data from Firebase — loads on start, syncs across devices
+  onValue(ref(db, 'users/' + uid + '/data'), snapshot => {
+    const saved = snapshot.val();
+    if(saved && saved.A) {
+      // Restore state
+      Object.keys(A).forEach(k => delete A[k]);
+      Object.assign(A, saved.A);
+      HW.length = 0;
+      (saved.HW || []).forEach(r => HW.push(r));
+      if(saved.NID) NID = saved.NID;
+      // Restore custom tabs
+      const savedTabs = saved.TABS || [];
+      savedTabs.forEach(t => { if(!TABS.find(x=>x.id===t.id)) TABS.push(t); });
+    }
+    // Render app (only once)
+    if(!document.getElementById('tab-home')) {
+      initRender();
+    } else {
+      // Re-render all tabs with fresh data (synced from another device)
+      fullRerender();
+    }
+  }, { onlyOnce: false });
+
+  // Wire up sign out
+  document.addEventListener('click', e => {
+    if(e.target.closest('[data-action="signout"]')) {
+      signOut(auth);
+      appStarted = false;
+    }
+  });
+
+  // Wrap saveToFirebase into global scope
+  window._saveToFirebase = () => saveToFirebase(uid);
+}
+
+window.firebaseReady = true;
+</script>
+
+<script>
+let NID = 200;
+const uid = () => ++NID;
+const fmt = n => (n<0?'-$':'$') + Math.abs(n).toFixed(2);
+const fmtD = s => { if(!s) return ''; try { const[y,m,d]=s.split('-'); return `${parseInt(d)} ${['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][parseInt(m)-1]} ${y}`; } catch(e){ return s; }};
+const todayStr = () => new Date().toISOString().slice(0,10);
+const todayFmt = () => fmtD(todayStr());
+
+// ── DEFAULT DATA ─────────────────────────────────────────────────────────────
+const A = {
+  qcard:{label:'ING QCARD',date:'2026-06-04',
+    items:[
+      {id:1,label:'BUPA',amount:537.13,date:'2026-06-04'},
+      {id:2,label:'iCloud',amount:18.75,date:'2026-06-04'},
+      {id:3,label:'Mobile',amount:242.91,date:'2026-06-04'},
+      {id:4,label:'Spotify',amount:26.25,date:'2026-06-04'},
+      {id:5,label:'Interest',amount:0.05,date:'2026-06-04'}
+    ],
+    allowances:[
+      {id:1,label:'BUPA (215 mthly)',amount:40.25},
+      {id:2,label:'iCloud (15 mthly)',amount:3.75},
+      {id:3,label:'Mobile (146 mthly)',amount:36.50},
+      {id:4,label:'Spotify (21 mthly)',amount:5.25}
+    ]
+  },
+  holiday:{label:'Holiday acct',date:'2026-06-04',
+    items:[
+      {id:1,label:'Kitty',amount:175.00,date:'2026-06-04'},
+      {id:2,label:'Savings',amount:2458.97,date:'2026-03-28'},
+      {id:3,label:'Interest',amount:45.03,date:'2026-06-04'},
+      {id:4,label:'Dental',amount:50.00,date:'2026-06-04'}
+    ]
+  },
+  emergency:{label:'Emergency acct',date:'2026-05-20',
+    items:[{id:1,label:'Balance',amount:1661.18,date:'2026-05-20'}]
+  },
+  nab:{label:'NAB (car)',date:'2026-06-04',
+    items:[
+      {id:1,label:'Petrol (W$70)',amount:670.00,date:'2026-06-04'},
+      {id:2,label:'Eastlink (W$70)',amount:140.00,date:'2026-06-04'},
+      {id:3,label:'Service (Y$1100)',amount:2333.40,date:'2026-06-04'},
+      {id:4,label:'Rego (Y$900)',amount:1023.33,date:'2026-06-04'},
+      {id:5,label:'Insurance (Y$2500)',amount:2612.07,date:'2026-06-04'},
+      {id:6,label:'RACV (Y$290)',amount:61.00,date:'2026-06-04'}
+    ],
+    allowances:[
+      {id:1,label:'Petrol',amount:85.00},
+      {id:2,label:'Eastlink',amount:70.00},
+      {id:3,label:'Servicing (1560/yr?)',amount:30.00},
+      {id:4,label:'Registration (900/yr)',amount:20.00},
+      {id:5,label:'Insurance (2500/yr)',amount:49.00},
+      {id:6,label:'RACV (296/yr)',amount:6.00}
+    ]
+  },
+  cba:{label:'CBA Personal',date:'2026-06-05',
+    items:[
+      {id:1,label:'Savings',amount:1000.40,date:'2025-07-31'},
+      {id:2,label:'Car input',amount:4605.00,date:'2026-06-05'},
+      {id:3,label:'Owe',amount:0.00,date:''}
+    ]
+  },
+  carloan:{label:'Car Loan',date:'2026-06-05',
+    items:[
+      {id:1,label:'Car loan',amount:-12681.01,date:'2026-06-05'},
+      {id:2,label:'Offset',amount:12681.01,date:'2026-06-05'}
+    ]
+  }
+};
+
+const HW = [
+  {id:'nab',label:'NAB',source:'nab'},
+  {id:'qcard',label:'QCARD',source:'qcard'},
+  {id:'kitty',label:'Kitty',amount:175.00},
+  {id:'bills',label:'Bills',amount:100.00},
+  {id:'spending',label:'Spending',amount:150.00},
+  {id:'misc',label:'Misc',amount:79.00},
+  {id:'savings',label:'Savings',amount:50.00}
+];
+
+// ── UNDO ─────────────────────────────────────────────────────────────────────
+const undoStack = [];
+function snapshot(description){
+  undoStack.push({description, state:JSON.parse(JSON.stringify(A)), hw:JSON.parse(JSON.stringify(HW))});
+  if(undoStack.length>20) undoStack.shift();
+  updateUndoBtn();
+}
+function updateUndoBtn(){
+  const btn = document.getElementById('undo-btn');
+  if(!btn) return;
+  if(undoStack.length > 0){
+    btn.textContent = '↩ Undo: ' + undoStack[undoStack.length-1].description;
+    btn.disabled = false;
+    btn.style.opacity = '1';
+  } else {
+    btn.textContent = '↩ Undo';
+    btn.disabled = true;
+    btn.style.opacity = '.4';
+  }
+}
+function doUndo(){
+  if(!undoStack.length) return;
+  const snap = undoStack.pop();
+  Object.keys(A).forEach(k => delete A[k]);
+  Object.assign(A, JSON.parse(JSON.stringify(snap.state)));
+  HW.length = 0;
+  snap.hw.forEach(r => HW.push(r));
+  TABS.filter(t=>t.id!=='home').forEach(t=>{
+    const el = document.getElementById('content-'+t.id);
+    if(el && A[t.id]) el.innerHTML = buildAcctTab(t.id);
+    else if(el && !A[t.id]){ el.remove(); const btn=document.getElementById('tab-'+t.id); if(btn) btn.remove(); }
+  });
+  for(let i=TABS.length-1;i>=0;i--){
+    const t=TABS[i]; if(t.id==='home') continue;
+    if(!A[t.id]){ TABS.splice(i,1); const btn=document.getElementById('tab-'+t.id); if(btn) btn.remove(); const c=document.getElementById('content-'+t.id); if(c) c.remove(); }
+  }
+  const homeEl = document.getElementById('content-home');
+  if(homeEl) homeEl.innerHTML = buildHome();
+  renderTabBar(); refreshHome(); updateUndoBtn();
+  save();
+}
+
+// ── HELPERS ───────────────────────────────────────────────────────────────────
+const acctTotal = id => A[id].items.reduce((s,i)=>s+i.amount,0);
+const allowTotal = id => (A[id].allowances||[]).reduce((s,a)=>s+a.amount,0);
+const grandTotal = () => Object.keys(A).reduce((s,id)=>s+acctTotal(id),0);
+const hwTotal = () => HW.reduce((s,r)=>s+(r.source?allowTotal(r.source):r.amount),0);
+const setEl = (id,v) => { const e=document.getElementById(id); if(e) e.textContent=v; };
+const setCls = (id,c) => { const e=document.getElementById(id); if(e) e.className=c; };
+const save = () => { if(window._saveToFirebase) window._saveToFirebase(); };
+
+function refreshGrand(){
+  setEl('grandTotal', fmt(grandTotal()));
+  setEl('topDate', todayFmt());
+}
+function refreshHome(){
+  Object.keys(A).forEach(id=>{
+    const t = acctTotal(id);
+    setEl('hbal-'+id, fmt(t)); setCls('hbal-'+id, t>=0?'pos':'neg');
+    const dates = A[id].items.map(i=>i.date).filter(Boolean).sort().reverse();
+    setEl('hdate-'+id, dates[0]?fmtD(dates[0]):'');
+  });
+  setEl('hbal-total', fmt(grandTotal()));
+  HW.forEach(r=>{ setEl('hw-val-'+r.id, fmt(r.source?allowTotal(r.source):r.amount)); });
+  setEl('hw-total', fmt(hwTotal()));
+  refreshGrand();
+}
+function fullRerender(){
+  TABS.filter(t=>t.id!=='home').forEach(t=>{
+    const el = document.getElementById('content-'+t.id);
+    if(el && A[t.id]) el.innerHTML = buildAcctTab(t.id);
+  });
+  const homeEl = document.getElementById('content-home');
+  if(homeEl) homeEl.innerHTML = buildHome();
+  renderTabBar(); refreshHome();
+}
+
+// ── ITEM ROWS ─────────────────────────────────────────────────────────────────
+function itemRowHTML(acctId, item){
+  return `<div id="irow-${acctId}-${item.id}">
+    <div class="item-row">
+      <span class="item-name">${item.label}</span>
+      <span class="item-date" id="idate-${acctId}-${item.id}">${fmtD(item.date)}</span>
+      <span class="item-bal ${item.amount>=0?'pos':'neg'}" id="ibal-${acctId}-${item.id}">${fmt(item.amount)}</span>
+      <button class="calc-btn" data-action="calc" data-acct="${acctId}" data-id="${item.id}">⟳ Calculate</button>
+      <button class="del-btn" data-action="delitem" data-acct="${acctId}" data-id="${item.id}" title="Remove">✕</button>
+    </div>
+    <div class="inline-calc" id="calc-${acctId}-${item.id}">
+      <label>Amount</label>
+      <input type="number" step="0.01" id="cinput-${acctId}-${item.id}" placeholder="0.00" data-action="calcenter" data-acct="${acctId}" data-id="${item.id}">
+      <select id="cop-${acctId}-${item.id}"><option value="sub">− Deduct</option><option value="add">+ Add</option></select>
+      <input type="date" id="cdate-${acctId}-${item.id}" value="${todayStr()}">
+      <button class="btn-apply" data-action="apply" data-acct="${acctId}" data-id="${item.id}">Apply</button>
+      <button class="btn-cancel" data-action="cancel" data-acct="${acctId}" data-id="${item.id}">Cancel</button>
+    </div>
+  </div>`;
+}
+function openCalc(acctId, itemId){
+  document.querySelectorAll('.inline-calc.open').forEach(el=>el.classList.remove('open'));
+  const el = document.getElementById(`calc-${acctId}-${itemId}`);
+  if(el){ el.classList.add('open'); el.querySelector('input[type=number]').focus(); }
+}
+function closeCalc(acctId, itemId){ const el=document.getElementById(`calc-${acctId}-${itemId}`); if(el) el.classList.remove('open'); }
+function applyCalc(acctId, itemId){
+  const item = A[acctId].items.find(i=>i.id===itemId);
+  if(!item) return;
+  const raw = parseFloat(document.getElementById(`cinput-${acctId}-${itemId}`).value)||0;
+  if(!raw) return;
+  const op = document.getElementById(`cop-${acctId}-${itemId}`).value;
+  const date = document.getElementById(`cdate-${acctId}-${itemId}`).value||todayStr();
+  snapshot((op==='sub'?'Deduct from ':'Add to ')+item.label);
+  item.amount = parseFloat((op==='sub'?item.amount-raw:item.amount+raw).toFixed(2));
+  item.date = date; A[acctId].date = date;
+  setEl(`ibal-${acctId}-${itemId}`, fmt(item.amount));
+  setCls(`ibal-${acctId}-${itemId}`, item.amount>=0?'pos':'neg');
+  setEl(`idate-${acctId}-${itemId}`, fmtD(date));
+  const t = acctTotal(acctId);
+  setEl(`atotal-${acctId}`, fmt(t)); setCls(`atotal-${acctId}`, t>=0?'pos':'neg');
+  document.getElementById(`cinput-${acctId}-${itemId}`).value = '';
+  closeCalc(acctId, itemId); refreshHome(); save();
+}
+function addItem(acctId){
+  const lEl=document.getElementById(`addl-${acctId}`), aEl=document.getElementById(`adda-${acctId}`), dEl=document.getElementById(`addd-${acctId}`);
+  const label=lEl.value.trim(), amount=parseFloat(aEl.value)||0, date=dEl.value||todayStr();
+  if(!label) return;
+  snapshot('Add '+label);
+  const item = {id:uid(),label,amount,date};
+  A[acctId].items.push(item); A[acctId].date = date;
+  const totalBar = document.getElementById(`totalbar-${acctId}`);
+  if(totalBar){ const div=document.createElement('div'); div.innerHTML=itemRowHTML(acctId,item); totalBar.parentNode.insertBefore(div.firstElementChild,totalBar); }
+  const t = acctTotal(acctId);
+  setEl(`atotal-${acctId}`, fmt(t)); setCls(`atotal-${acctId}`, t>=0?'pos':'neg');
+  lEl.value=''; aEl.value=''; dEl.value=todayStr();
+  refreshHome(); save();
+}
+function deleteItem(acctId, itemId){
+  showDeleteModal(()=>{
+    const item = A[acctId].items.find(i=>i.id===itemId);
+    snapshot('Delete '+(item?item.label:'item'));
+    A[acctId].items = A[acctId].items.filter(i=>i.id!==itemId);
+    const row = document.getElementById(`irow-${acctId}-${itemId}`); if(row) row.remove();
+    const t = acctTotal(acctId);
+    setEl(`atotal-${acctId}`, fmt(t)); setCls(`atotal-${acctId}`, t>=0?'pos':'neg');
+    refreshHome(); save();
+  });
+}
+
+// ── ALLOWANCES ────────────────────────────────────────────────────────────────
+function allowRowHTML(acctId, a){
+  return `<div class="allow-row" id="arow-${acctId}-${a.id}">
+    <span class="allow-name">${a.label}</span>
+    <input class="allow-input" type="number" step="0.01" value="${a.amount.toFixed(2)}" data-action="allowchange" data-acct="${acctId}" data-id="${a.id}" aria-label="${a.label}">
+    <button class="del-btn" data-action="delallow" data-acct="${acctId}" data-id="${a.id}" title="Remove">✕</button>
+  </div>`;
+}
+function onAllowChange(acctId, aId, val){
+  const a = A[acctId].allowances.find(x=>x.id===aId);
+  if(a) a.amount = parseFloat(val)||0;
+  setEl('atallow-'+acctId, fmt(allowTotal(acctId)));
+  refreshHome(); save();
+}
+function addAllow(acctId){
+  const lEl=document.getElementById(`waddl-${acctId}`), aEl=document.getElementById(`wadda-${acctId}`);
+  const label=lEl.value.trim(), amount=parseFloat(aEl.value)||0;
+  if(!label) return;
+  snapshot('Add allowance '+label);
+  const a = {id:uid(),label,amount};
+  A[acctId].allowances.push(a);
+  const anchor = document.getElementById(`atallow-wrap-${acctId}`);
+  if(anchor){ const div=document.createElement('div'); div.innerHTML=allowRowHTML(acctId,a); anchor.parentNode.insertBefore(div.firstElementChild,anchor); }
+  setEl('atallow-'+acctId, fmt(allowTotal(acctId)));
+  lEl.value=''; aEl.value=''; refreshHome(); save();
+}
+function deleteAllow(acctId, aId){
+  showDeleteModal(()=>{
+    const a = A[acctId].allowances.find(x=>x.id===aId);
+    snapshot('Delete allowance '+(a?a.label:''));
+    A[acctId].allowances = A[acctId].allowances.filter(x=>x.id!==aId);
+    const row = document.getElementById(`arow-${acctId}-${aId}`); if(row) row.remove();
+    setEl('atallow-'+acctId, fmt(allowTotal(acctId)));
+    refreshHome(); save();
+  });
+}
+
+// ── HOME WEEKLY ───────────────────────────────────────────────────────────────
+function hwRowHTML(r){
+  const val = r.source ? allowTotal(r.source) : r.amount;
+  if(r.source){
+    return `<div class="w-row" id="hwrow-${r.id}">
+      <span class="w-label">${r.label}<span class="hint">(from ${r.label} tab)</span></span>
+      <span class="w-amt" id="hw-val-${r.id}">${fmt(val)}</span>
+    </div>`;
+  }
+  return `<div class="w-row" id="hwrow-${r.id}">
+    <span class="w-label">${r.label}</span>
+    <div style="display:flex;align-items:center;gap:6px">
+      <input class="allow-input" type="number" step="0.01" value="${val.toFixed(2)}" data-action="hwchange" data-id="${r.id}" aria-label="${r.label}" style="width:80px">
+      <button class="del-btn" data-action="delhw" data-id="${r.id}" title="Remove">✕</button>
+    </div>
+  </div>`;
+}
+function addHW(){
+  const lEl=document.getElementById('hw-addl'), aEl=document.getElementById('hw-adda');
+  const label=lEl.value.trim(), amount=parseFloat(aEl.value)||0;
+  if(!label) return;
+  snapshot('Add weekly '+label);
+  const r = {id:'hw'+uid(),label,amount};
+  HW.push(r);
+  const wrap = document.getElementById('hw-rows-wrap');
+  if(wrap){ const div=document.createElement('div'); div.innerHTML=hwRowHTML(r); wrap.appendChild(div.firstElementChild); }
+  setEl('hw-total', fmt(hwTotal()));
+  lEl.value=''; aEl.value=''; save();
+}
+function deleteHW(rowId){
+  showDeleteModal(()=>{
+    const idx = HW.findIndex(x=>x.id===rowId);
+    snapshot('Delete weekly '+(idx>-1?HW[idx].label:''));
+    if(idx>-1) HW.splice(idx,1);
+    const row = document.getElementById('hwrow-'+rowId); if(row) row.remove();
+    setEl('hw-total', fmt(hwTotal())); save();
+  });
+}
+
+// ── BUILD TABS ────────────────────────────────────────────────────────────────
+function buildAcctTab(id){
+  const acct = A[id];
+  const itemsHTML = acct.items.map(item=>itemRowHTML(id,item)).join('');
+  const t = acctTotal(id);
+  let allowHTML = '';
+  if(acct.allowances){
+    allowHTML = `
+    <p class="sec-title" style="margin-top:1.1rem">Weekly allowances <span class="hint">— total updates Home weekly spend</span></p>
+    <div class="card">
+      ${acct.allowances.map(a=>allowRowHTML(id,a)).join('')}
+      <div id="atallow-wrap-${id}"></div>
+      <div class="allow-total"><span style="color:var(--muted)">Total / week</span><span id="atallow-${id}">${fmt(allowTotal(id))}</span></div>
+      <div class="add-allow-row">
+        <input type="text" id="waddl-${id}" placeholder="Label (e.g. Parking)">
+        <input type="number" step="0.01" id="wadda-${id}" placeholder="$/wk">
+        <button class="btn-add-line" data-action="addallow" data-acct="${id}">+ Add</button>
+      </div>
+    </div>`;
+  }
+  return `
+  <div class="card">
+    ${itemsHTML}
+    <div id="totalbar-${id}"></div>
+    <div class="acct-total"><span>Account total</span><span class="${t>=0?'pos':'neg'}" id="atotal-${id}">${fmt(t)}</span></div>
+    <div class="add-row">
+      <input type="text" id="addl-${id}" placeholder="New line label">
+      <input type="number" step="0.01" id="adda-${id}" placeholder="Starting amount">
+      <input type="date" id="addd-${id}" value="${todayStr()}">
+      <button class="btn-add-line" data-action="additem" data-acct="${id}">+ Add line</button>
+    </div>
+  </div>
+  ${allowHTML}
+  <div style="margin-top:1.5rem;padding-top:1rem;border-top:1px solid var(--border);text-align:right">
+    <button data-action="deleteacct" data-acct="${id}" style="background:none;border:1px solid #d0a090;border-radius:8px;padding:6px 14px;font-size:12px;color:var(--red);cursor:pointer;font-family:inherit">🗑 Remove this account</button>
+  </div>`;
+}
+
+function buildHome(){
+  const rows = Object.keys(A).map(id=>{
+    const t = acctTotal(id);
+    const dates = A[id].items.map(i=>i.date).filter(Boolean).sort().reverse();
+    return `<tr id="hrow-${id}">
+      <td>${A[id].label}</td>
+      <td class="${t>=0?'pos':'neg'}" id="hbal-${id}">${fmt(t)}</td>
+      <td style="color:var(--muted);font-size:12px" id="hdate-${id}">${dates[0]?fmtD(dates[0]):''}</td>
+    </tr>`;
+  }).join('');
+  const wRows = HW.map(hwRowHTML).join('');
+  return `
+  <div class="card">
+    <table class="home-table">
+      <thead><tr><th>Account</th><th>Balance</th><th>Updated</th></tr></thead>
+      <tbody>${rows}</tbody>
+      <tfoot><tr><td>Total</td><td class="pos" id="hbal-total">${fmt(grandTotal())}</td><td></td></tr></tfoot>
+    </table>
+  </div>
+  <p class="sec-title">Weekly spend</p>
+  <div class="card">
+    <div id="hw-rows-wrap">${wRows}</div>
+    <div class="w-total-row"><span style="color:var(--muted)">Total / week</span><span id="hw-total">${fmt(hwTotal())}</span></div>
+    <div class="add-allow-row">
+      <input type="text" id="hw-addl" placeholder="Label (e.g. Gym)">
+      <input type="number" step="0.01" id="hw-adda" placeholder="$/wk">
+      <button class="btn-add-line" data-action="addhw">+ Add</button>
+    </div>
+  </div>`;
+}
+
+// ── ACCOUNT MANAGEMENT ────────────────────────────────────────────────────────
+function deleteAccount(acctId){
+  showDeleteModal(()=>{
+    snapshot('Delete account '+(A[acctId]?A[acctId].label:''));
+    delete A[acctId];
+    const idx = TABS.findIndex(t=>t.id===acctId); if(idx>-1) TABS.splice(idx,1);
+    rebuildHomeTable();
+    const hwIdx = HW.findIndex(r=>r.source===acctId||r.id===acctId);
+    if(hwIdx>-1){ const hwRow=document.getElementById('hwrow-'+HW[hwIdx].id); if(hwRow) hwRow.remove(); HW.splice(hwIdx,1); }
+    setEl('hw-total', fmt(hwTotal()));
+    activeTab = 'home'; renderTabBar(); switchTab('home'); refreshHome(); save();
+  });
+}
+function rebuildHomeTable(){
+  const tbody = document.querySelector('#content-home .home-table tbody');
+  if(!tbody) return;
+  tbody.innerHTML = Object.keys(A).map(id=>{
+    const t=acctTotal(id); const dates=A[id].items.map(i=>i.date).filter(Boolean).sort().reverse();
+    return `<tr id="hrow-${id}"><td>${A[id].label}</td><td class="${t>=0?'pos':'neg'}" id="hbal-${id}">${fmt(t)}</td><td style="color:var(--muted);font-size:12px" id="hdate-${id}">${dates[0]?fmtD(dates[0]):''}</td></tr>`;
+  }).join('');
+  setEl('hbal-total', fmt(grandTotal()));
+}
+
+// ── TABS ──────────────────────────────────────────────────────────────────────
+const TABS = [
+  {id:'home',label:'🏠 Home'},
+  {id:'qcard',label:'ING QCARD'},
+  {id:'holiday',label:'Holiday'},
+  {id:'emergency',label:'Emergency'},
+  {id:'nab',label:'NAB Car'},
+  {id:'cba',label:'CBA Personal'},
+  {id:'carloan',label:'Car Loan'}
+];
+let activeTab = 'home';
+
+function renderTabBar(){
+  document.getElementById('tabsWrap').innerHTML =
+    TABS.map(t=>`<button class="tab-btn${t.id===activeTab?' active':''}" id="tab-${t.id}" data-action="switchtab" data-tab="${t.id}">${t.label}</button>`).join('') +
+    `<button class="tab-btn" data-action="addacct" style="color:var(--green);font-weight:600">+ Account</button>`;
+}
+function switchTab(id){
+  activeTab = id;
+  TABS.forEach(t=>{
+    const btn=document.getElementById('tab-'+t.id), content=document.getElementById('content-'+t.id);
+    if(btn) btn.classList.toggle('active', t.id===id);
+    if(content) content.classList.toggle('active', t.id===id);
+  });
+  renderTabBar();
+}
+
+function initRender(){
+  document.getElementById('tabContents').innerHTML = TABS.map((t,i)=>`
+    <div class="tab-content${i===0?' active':''}" id="content-${t.id}">
+      ${t.id==='home'?buildHome():buildAcctTab(t.id)}
+    </div>`).join('');
+  renderTabBar(); refreshGrand(); updateUndoBtn();
+}
+
+// ── NEW ACCOUNT MODAL ─────────────────────────────────────────────────────────
+const newAcctModal = document.createElement('div');
+newAcctModal.style.cssText = 'display:none;position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:999;align-items:center;justify-content:center';
+newAcctModal.innerHTML = `<div style="background:#fff;border-radius:12px;padding:1.5rem;max-width:320px;width:92%;box-shadow:0 8px 30px rgba(0,0,0,.15)">
+  <p style="font-size:16px;font-weight:600;margin-bottom:1rem">New account</p>
+  <label style="font-size:12px;color:#777672;display:block;margin-bottom:4px">Account name</label>
+  <input id="newacct-name" type="text" placeholder="e.g. ING Savings" style="width:100%;font-size:14px;padding:8px 10px;border:1px solid #d0cfc9;border-radius:8px;font-family:inherit;margin-bottom:.75rem">
+  <label style="font-size:12px;color:#777672;display:block;margin-bottom:4px">Include weekly allowances section?</label>
+  <div style="display:flex;gap:10px;margin-bottom:1.25rem">
+    <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer"><input type="radio" name="newacct-weekly" value="yes" checked> Yes</label>
+    <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer"><input type="radio" name="newacct-weekly" value="no"> No</label>
+  </div>
+  <div style="display:flex;gap:10px">
+    <button id="newacct-cancel" style="flex:1;padding:8px;border:1px solid #d0cfc9;border-radius:8px;background:#fff;font-size:14px;cursor:pointer;font-family:inherit">Cancel</button>
+    <button id="newacct-confirm" style="flex:1;padding:8px;border:none;border-radius:8px;background:#0F6E56;color:#fff;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit">Create</button>
+  </div>
+</div>`;
+document.body.appendChild(newAcctModal);
+document.getElementById('newacct-cancel').onclick = () => { newAcctModal.style.display='none'; };
+document.getElementById('newacct-confirm').onclick = () => {
+  const name = document.getElementById('newacct-name').value.trim(); if(!name) return;
+  const weekly = document.querySelector('input[name="newacct-weekly"]:checked').value==='yes';
+  const id = 'acct'+uid();
+  snapshot('Add account '+name);
+  A[id] = {label:name,date:todayStr(),items:[],allowances:weekly?[]:undefined};
+  TABS.push({id,label:name});
+  const tbody = document.querySelector('#content-home .home-table tbody');
+  if(tbody){ const tr=document.createElement('tr'); tr.id='hrow-'+id; tr.innerHTML=`<td>${name}</td><td class="pos" id="hbal-${id}">$0.00</td><td style="color:var(--muted);font-size:12px" id="hdate-${id}"></td>`; tbody.appendChild(tr); }
+  if(weekly){ const hwWrap=document.getElementById('hw-rows-wrap'); if(hwWrap){ const r={id,label:name,source:id}; HW.push(r); const div2=document.createElement('div'); div2.innerHTML=hwRowHTML(r); hwWrap.appendChild(div2.firstElementChild); }}
+  renderTabBar();
+  const contWrap = document.getElementById('tabContents');
+  const div = document.createElement('div'); div.className='tab-content'; div.id='content-'+id; div.innerHTML=buildAcctTab(id); contWrap.appendChild(div);
+  newAcctModal.style.display='none'; document.getElementById('newacct-name').value='';
+  setEl('hbal-total', fmt(grandTotal())); refreshGrand(); switchTab(id); save();
+};
+
+// ── DELETE MODAL ──────────────────────────────────────────────────────────────
+let pendingDelete = null;
+const modal = document.createElement('div');
+modal.style.cssText = 'display:none;position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:1000;align-items:center;justify-content:center';
+modal.innerHTML = `<div style="background:#fff;border-radius:12px;padding:1.5rem;max-width:280px;width:90%;text-align:center;box-shadow:0 8px 30px rgba(0,0,0,.15)">
+  <p style="font-size:15px;margin-bottom:1.25rem" id="modal-msg">Remove this?</p>
+  <div style="display:flex;gap:10px;justify-content:center">
+    <button id="modal-cancel" style="flex:1;padding:8px;border:1px solid #d0cfc9;border-radius:8px;background:#fff;font-size:14px;cursor:pointer;font-family:inherit">Cancel</button>
+    <button id="modal-confirm" style="flex:1;padding:8px;border:none;border-radius:8px;background:#993C1D;color:#fff;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit">Remove</button>
+  </div>
+</div>`;
+document.body.appendChild(modal);
+document.getElementById('modal-cancel').onclick = () => { modal.style.display='none'; pendingDelete=null; };
+document.getElementById('modal-confirm').onclick = () => { modal.style.display='none'; if(pendingDelete){ pendingDelete(); pendingDelete=null; }};
+function showDeleteModal(fn, msg){ pendingDelete=fn; document.getElementById('modal-msg').textContent=msg||'Remove this?'; modal.style.display='flex'; }
+
+// ── DELEGATED EVENTS ──────────────────────────────────────────────────────────
+document.addEventListener('click', function(e){
+  const btn = e.target.closest('[data-action]'); if(!btn) return;
+  const action=btn.dataset.action, acct=btn.dataset.acct, id=parseInt(btn.dataset.id);
+  if(action==='switchtab') switchTab(btn.dataset.tab);
+  else if(action==='undo') doUndo();
+  else if(action==='addacct'){ newAcctModal.style.display='flex'; setTimeout(()=>document.getElementById('newacct-name').focus(),50); }
+  else if(action==='calc') openCalc(acct,id);
+  else if(action==='apply') applyCalc(acct,id);
+  else if(action==='cancel') closeCalc(acct,id);
+  else if(action==='delitem') deleteItem(acct,id);
+  else if(action==='delallow') deleteAllow(acct,id);
+  else if(action==='additem') addItem(acct);
+  else if(action==='addallow') addAllow(acct);
+  else if(action==='addhw') addHW();
+  else if(action==='delhw') deleteHW(btn.dataset.id);
+  else if(action==='deleteacct') deleteAccount(acct);
+});
+document.addEventListener('keydown', function(e){
+  if(e.key!=='Enter') return;
+  const inp = e.target.closest('[data-action="calcenter"]');
+  if(inp) applyCalc(inp.dataset.acct, parseInt(inp.dataset.id));
+});
+document.addEventListener('input', function(e){
+  const el = e.target.closest('[data-action="allowchange"]');
+  if(el) onAllowChange(el.dataset.acct, parseInt(el.dataset.id), el.value);
+  const hw = e.target.closest('[data-action="hwchange"]');
+  if(hw){ const r=HW.find(x=>x.id===hw.dataset.id); if(r&&!r.source) r.amount=parseFloat(hw.value)||0; setEl('hw-total',fmt(hwTotal())); save(); }
+});
+</script>
+<script>
+if('serviceWorker' in navigator){
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js').catch(()=>{});
+  });
+}
+</script>
+</body>
+</html>
