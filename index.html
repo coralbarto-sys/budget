@@ -167,17 +167,12 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);padding:0 0 
       <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
         <div class="save-status" id="save-status"></div>
         <button class="btn-topbar" id="undo-btn" data-action="undo" disabled>↩ Undo</button>
-        <button class="btn-topbar" data-action="togglemenu" id="menu-btn">⋯</button>
+        <button class="btn-topbar" data-action="signout">Sign out</button>
         <input type="file" id="import-file-input" accept=".json" style="display:none">
       </div>
     </div>
   </div>
-  <!-- Dropdown menu -->
-<div id="app-menu" style="display:none;position:absolute;top:80px;right:1rem;background:#fff;border:1px solid var(--border2);border-radius:10px;box-shadow:0 4px 20px rgba(0,0,0,.12);z-index:500;min-width:180px;overflow:hidden">
-  <button data-action="exportdata" style="width:100%;text-align:left;padding:12px 16px;background:none;border:none;border-bottom:1px solid var(--border);font-size:14px;font-family:var(--font);cursor:pointer;color:var(--text);display:flex;align-items:center;gap:10px">⬇ Export backup</button>
-  <button data-action="importdata" style="width:100%;text-align:left;padding:12px 16px;background:none;border:none;border-bottom:1px solid var(--border);font-size:14px;font-family:var(--font);cursor:pointer;color:var(--text);display:flex;align-items:center;gap:10px">⬆ Import backup</button>
-  <button data-action="signout" style="width:100%;text-align:left;padding:12px 16px;background:none;border:none;font-size:14px;font-family:var(--font);cursor:pointer;color:var(--red);display:flex;align-items:center;gap:10px">Sign out</button>
-</div>
+  <!-- Dropdown menu removed - export/import now on Home tab -->
 <div class="tabs-wrap" id="tabsWrap"></div>
   <div id="tabContents"></div>
 </div>
@@ -709,6 +704,14 @@ function buildHome(){
       <input type="number" step="0.01" id="hw-adda" placeholder="$/wk">
       <button class="btn-add-line" data-action="addhw">+ Add</button>
     </div>
+  </div>
+  <p class="sec-title">Data backup</p>
+  <div class="card" style="padding:1rem 1.25rem">
+    <p style="font-size:13px;color:var(--muted);margin-bottom:1rem">Save a backup of all your account data to your device, or restore from a previous backup file.</p>
+    <div style="display:flex;gap:10px">
+      <button data-action="exportdata" style="flex:1;padding:12px;background:var(--green);border:none;border-radius:10px;color:#fff;font-size:15px;font-weight:600;font-family:var(--font);cursor:pointer">⬇ Export backup</button>
+      <button data-action="importdata" style="flex:1;padding:12px;background:var(--bg);border:1px solid var(--border2);border-radius:10px;color:var(--text);font-size:15px;font-weight:600;font-family:var(--font);cursor:pointer">⬆ Import backup</button>
+    </div>
   </div>`;
 }
 
@@ -878,11 +881,7 @@ document.addEventListener('click', function(e){
   const action=btn.dataset.action, acct=btn.dataset.acct, id=parseInt(btn.dataset.id);
   if(action==='switchtab') switchTab(btn.dataset.tab);
   else if(action==='undo') doUndo();
-  else if(action==='togglemenu'){
-    const m=document.getElementById('app-menu');
-    m.style.display=m.style.display==='none'?'block':'none';
-  }
-  else if(action==='addacct'){ document.getElementById('app-menu').style.display='none'; newAcctModal.style.display='flex'; setTimeout(()=>document.getElementById('newacct-name').focus(),50); }
+  else if(action==='addacct'){ newAcctModal.style.display='flex'; setTimeout(()=>document.getElementById('newacct-name').focus(),50); }
   else if(action==='calc') openCalc(acct,id);
   else if(action==='apply') applyCalc(acct,id);
   else if(action==='cancel') closeCalc(acct,id);
@@ -893,9 +892,9 @@ document.addEventListener('click', function(e){
   else if(action==='addhw') addHW();
   else if(action==='delhw') deleteHW(btn.dataset.id);
   else if(action==='deleteacct') deleteAccount(acct);
-  else if(action==='signout'){ document.getElementById('app-menu').style.display='none'; signOut(auth); appStarted=false; }
-  else if(action==='exportdata'){ document.getElementById('app-menu').style.display='none'; exportData(); }
-  else if(action==='importdata'){ document.getElementById('app-menu').style.display='none'; const inp=document.getElementById('import-file-input'); inp.value=''; inp.click(); }
+  else if(action==='signout'){ signOut(auth); appStarted=false; }
+  else if(action==='exportdata'){ exportData(); }
+  else if(action==='importdata'){ const inp=document.getElementById('import-file-input'); inp.value=''; inp.click(); }
   else if(action==='togglehist'){
     const toggle=btn; const panel=document.getElementById('hist-panel-'+acct);
     toggle.classList.toggle('open'); if(panel){ panel.classList.toggle('open'); refreshHistoryPanel(acct); }
@@ -915,15 +914,7 @@ document.addEventListener('input', function(e){
 document.getElementById('import-file-input').addEventListener('change', function(){
   if(this.files && this.files[0]) importData(this.files[0]);
 });
-// Close menu when clicking outside it
-document.addEventListener('click', function(e){
-  const menu = document.getElementById('app-menu');
-  if(menu && menu.style.display==='block'){
-    if(!e.target.closest('#app-menu') && !e.target.closest('#menu-btn')){
-      menu.style.display='none';
-    }
-  }
-}, true);
+
 </script>
 <script>
 if('serviceWorker' in navigator){
